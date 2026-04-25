@@ -65,6 +65,13 @@ button:active {
     align-self: center;
 }
 
+.start-btn {
+    width: min(104px, 13vw);
+    height: min(52px, 13vw);
+    font-size: 1rem;
+    align-self: center;
+}
+
 
 
 

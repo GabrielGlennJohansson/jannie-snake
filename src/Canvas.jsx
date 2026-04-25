@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { use, useEffect, useRef } from 'react'
 
 const TILE = 100
 
@@ -13,9 +13,11 @@ const Canvas = props => {
     const baseImg = useRef(null)
     const baseRewardImg = useRef(null)
     const gameOverImg = useRef(null)
+    const logoImg = useRef(null)
 
     const bgMusic = useRef(null)
     const gameOverMusic = useRef(null)
+    const rewardMusic = useRef(null)
 
     let context = useRef(null)
 
@@ -27,10 +29,13 @@ const Canvas = props => {
 
         bgMusic.current = new Audio(`${import.meta.env.BASE_URL}sound/theme.mp3`)
         bgMusic.current.loop = true
-        bgMusic.current.volume = 0.3
+        bgMusic.current.volume = 0.2
 
         gameOverMusic.current = new Audio(`${import.meta.env.BASE_URL}sound/game-over.mp3`)
         gameOverMusic.current.volume = 0.4
+
+        rewardMusic.current = new Audio(`${import.meta.env.BASE_URL}sound/reward.mp3`)
+        rewardMusic.current.volume = 0.4
 
         baseImg.current = new Image()
         baseImg.current.src = `${base}img/jannie2.png`;
@@ -41,16 +46,15 @@ const Canvas = props => {
         gameOverImg.current = new Image()
         gameOverImg.current.src = `${base}img/gameover.png`;
 
+        logoImg.current = new Image()
+        logoImg.current.src = `${base}img/logo.png`;
+
         const canvas = ref.current
         context = canvas.getContext("2d")
-        drawGrid()
-        findEmptyCordinate()
-
-        intervalRef.current = setInterval(() => {
-            runGame()
-        }, 500)
-
-        return () => clearInterval(intervalRef.current)
+        
+        logoImg.current.onload = () => {
+            drawWelcomeScreen()
+        }
     }, [])
 
     function togglePause() {
@@ -67,10 +71,25 @@ const Canvas = props => {
         }
     }
 
+    function drawWelcomeScreen(){        
+        const img = logoImg.current
+        const scale = Math.min(
+            context.canvas.width / img.naturalWidth,
+            context.canvas.height / img.naturalHeight
+        )
+        const w = img.naturalWidth * scale
+        const h = img.naturalHeight * scale
+        const x = (context.canvas.width - w) / 2
+        const y = (context.canvas.height - h) / 2
+
+        context.drawImage(logoImg.current, x, y, w, h)
+    }
+
     function gameOver() {
         bgMusic.current.pause()
         gameOverMusic.current.play()
         clearInterval(intervalRef.current)
+        intervalRef.current = null
 
         let step = 0
         const totalSteps = sizeCount.current
@@ -202,10 +221,6 @@ const Canvas = props => {
     }
 
     function keyPad(key){
-        if (bgMusic.current && bgMusic.current.paused) {
-            bgMusic.current.play()
-        }
-
         if (key === "W"){
             direction.current = {right: false, left: false, up: true, down: false}
         }
@@ -221,10 +236,6 @@ const Canvas = props => {
     }
 
     const setKey = (event) => {
-        if (bgMusic.current && bgMusic.current.paused) {
-            bgMusic.current.play()
-        }
-
         if (event.code === "KeyW" || event.code === "ArrowUp"){
             direction.current = {right: false, left: false, up: true, down: false}
         }
@@ -237,6 +248,23 @@ const Canvas = props => {
         else if (event.code === "KeyD" || event.code === "ArrowRight"){
             direction.current = {right: true, left: false, up: false, down: false}
         }
+    }
+
+    function startGame(){
+        if (intervalRef.current) return
+
+        if (bgMusic.current && bgMusic.current.paused) {
+            bgMusic.current.play()
+        }
+
+        drawGrid()
+        findEmptyCordinate()
+
+        intervalRef.current = setInterval(() => {
+            runGame()
+        }, 500)
+
+        return () => clearInterval(intervalRef.current)
     }
 
     function runGame() {
@@ -258,6 +286,7 @@ const Canvas = props => {
 
         if (pos.current.x === rewardPos.current.x && pos.current.y === rewardPos.current.y) {
             sizeCount.current++
+            rewardMusic.current.play()
             findEmptyCordinate()
         }
 
@@ -294,8 +323,6 @@ const Canvas = props => {
         for(let i = 1; i <= sizeCount.current && i < history.current.length; i++){
             if(pos.current.x == history.current[i].x && pos.current.y == history.current[i].y){
                 gameOver()
-                //sizeCount.current = 0
-                //history.current = []
                 break
             }
         }
@@ -327,6 +354,9 @@ const Canvas = props => {
                     <button onClick={() => keyPad("S")}>⇓</button>
                     <button className="empty" aria-hidden="true" />
                 </div>
+                <button className="start-btn" onClick={startGame}>
+                    Start
+                </button>
                 <button className="pause-btn" onClick={togglePause}>
                     ⏸
                 </button>
