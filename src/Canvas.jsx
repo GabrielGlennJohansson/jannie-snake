@@ -184,6 +184,7 @@ const Canvas = props => {
 
     return (
     <>
+        <div className="map-wrapper">
         <canvas
             onKeyDown={setKey}
             className='map'
@@ -191,9 +192,9 @@ const Canvas = props => {
             ref={ref}
             width="1000"
             height="1000"
-            style={{ flex: 1, minHeight: 0 }}
             {...props}
         />
+        </div>
         <div className="controller">
             <div className="dpad">
                 <button className="empty" aria-hidden="true" />
