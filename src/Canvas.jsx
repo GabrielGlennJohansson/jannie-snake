@@ -71,7 +71,10 @@ const Canvas = props => {
         }
     }
 
-    function drawWelcomeScreen(){        
+    function drawWelcomeScreen(){
+        context.fillStyle = 'black'
+        context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+        
         const img = logoImg.current
         const scale = Math.min(
             context.canvas.width / img.naturalWidth,
@@ -116,6 +119,9 @@ const Canvas = props => {
                 const h = img.naturalHeight * scale
                 const x = (context.canvas.width - w) / 2
                 const y = (context.canvas.height - h) / 2
+
+                context.fillStyle = 'black'
+                context.fillRect(0, 0, context.canvas.width, context.canvas.height)
 
                 context.drawImage(gameOverImg.current, x, y, w, h)
             }
