@@ -1,26 +1,34 @@
-.menu{
-    height: 35vh;
+.menu {
     width: 100%;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
-.menu img{
-    height: 90%;
+.menu img {
+    width: 100%;
+    height: 22vh;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
 }
 
-.menu ul{
+.menu ul {
     width: 100%;
     display: flex;
     justify-content: space-evenly;
     background-color: #FFDA76;
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+    padding: 0.3rem 0;
+    flex-shrink: 0;
 }
 
-.menu ul li{
+.menu ul li {
     list-style: none;
 }
 
-.menu ul li a{
+.menu ul li a {
     text-decoration: none;
     color: #FF4E88;
 }

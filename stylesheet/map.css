@@ -6,11 +6,10 @@ body{
     align-content: center;
 }
 
-.map{
+.map {
     border: solid black 3px;
-    border-radius: 1rem;
     width: 100%;
-    margin: 1rem;
+    display: block;
+    min-height: 0;          /* ← kritisk för flex-shrink */
     aspect-ratio: 1 / 1;
-    margin: 0 1rem 0 1rem;
 }

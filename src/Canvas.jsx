@@ -22,7 +22,7 @@ const Canvas = props => {
         baseImg.current.src = `${base}img/jannie2.png`;
 
         baseRewardImg.current = new Image()
-        baseRewardImg.current.src = `${base}img/powder.png`;
+        baseRewardImg.current.src = `${base}img/drink.png`;
 
         const canvas = ref.current
         context = canvas.getContext("2d")
@@ -189,20 +189,22 @@ const Canvas = props => {
             className='map'
             tabIndex={0}
             ref={ref}
-            width="1000" 
+            width="1000"
             height="1000"
+            style={{ flex: 1, minHeight: 0 }}
             {...props}
         />
         <div className="controller">
-            <div className="directions">
-                <div className="left-controller">
-                    <button onClick={() => keyPad("D")}>⇐</button>
-                    <button onClick={() => keyPad("A")}>⇒</button>
-                </div>
-                <div className="right-controller">
-                    <button onClick={() => keyPad("W")}>⇑</button>
-                    <button onClick={() => keyPad("S")}>⇓</button>
-                </div>
+            <div className="dpad">
+                <button className="empty" aria-hidden="true" />
+                <button onClick={() => keyPad("W")}>⇑</button>
+                <button className="empty" aria-hidden="true" />
+                <button onClick={() => keyPad("D")}>⇐</button>
+                <button className="empty" aria-hidden="true" />
+                <button onClick={() => keyPad("A")}>⇒</button>
+                <button className="empty" aria-hidden="true" />
+                <button onClick={() => keyPad("S")}>⇓</button>
+                <button className="empty" aria-hidden="true" />
             </div>
         </div>
     </>
