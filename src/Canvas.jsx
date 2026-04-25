@@ -8,16 +8,19 @@ const Canvas = props => {
     const history = useRef([])
     const sizeCount = useRef(3)
     const rewardPos = useRef({ x: 0, y: 0 })
+    const trapPos = useRef({ x: 0, y: 0 })
     const direction = useRef({right: true, left: false, up: false, down: false})
 
     const baseImg = useRef(null)
     const baseRewardImg = useRef(null)
     const gameOverImg = useRef(null)
     const logoImg = useRef(null)
+    const trapImg = useRef(null)
 
     const bgMusic = useRef(null)
     const gameOverMusic = useRef(null)
     const rewardMusic = useRef(null)
+    const trapMusic = useRef(null)
 
     let context = useRef(null)
 
@@ -37,11 +40,17 @@ const Canvas = props => {
         rewardMusic.current = new Audio(`${import.meta.env.BASE_URL}sound/reward.mp3`)
         rewardMusic.current.volume = 0.4
 
+        trapMusic.current = new Audio(`${import.meta.env.BASE_URL}sound/trap.mp3`)
+        trapMusic.current.volume = 0.4
+
         baseImg.current = new Image()
         baseImg.current.src = `${base}img/jannie2.png`;
 
         baseRewardImg.current = new Image()
         baseRewardImg.current.src = `${base}img/drink.png`;
+
+        trapImg.current = new Image()
+        trapImg.current.src = `${base}img/coffe.png`;
 
         gameOverImg.current = new Image()
         gameOverImg.current.src = `${base}img/gameover.png`;
@@ -166,6 +175,7 @@ const Canvas = props => {
 
         context.drawImage(baseImg.current, pos.current.x - 50, pos.current.y - 50, TILE * 2, TILE * 2)
         context.drawImage(baseRewardImg.current, rewardPos.current.x, rewardPos.current.y, TILE, TILE)
+        context.drawImage(trapImg.current, trapPos.current.x, trapPos.current.y, TILE, TILE)
         sizeCount.current--
     }
 
@@ -224,6 +234,7 @@ const Canvas = props => {
 
         context.drawImage(baseImg.current, pos.current.x - 50, pos.current.y - 50, TILE * 2, TILE * 2)
         context.drawImage(baseRewardImg.current, rewardPos.current.x, rewardPos.current.y, TILE, TILE)
+        context.drawImage(trapImg.current, trapPos.current.x, trapPos.current.y, TILE, TILE)
     }
 
     function keyPad(key){
@@ -264,7 +275,8 @@ const Canvas = props => {
         }
 
         drawGrid()
-        findEmptyCordinate()
+        findEmptyCordinate("reward")
+        findEmptyCordinate("trap")
 
         intervalRef.current = setInterval(() => {
             runGame()
@@ -293,13 +305,19 @@ const Canvas = props => {
         if (pos.current.x === rewardPos.current.x && pos.current.y === rewardPos.current.y) {
             sizeCount.current++
             rewardMusic.current.play()
-            findEmptyCordinate()
+            findEmptyCordinate("reward")
+        }
+
+        if (pos.current.x === trapPos.current.x && pos.current.y === trapPos.current.y) {
+            sizeCount.current = sizeCount.current / 2
+            trapMusic.current.play()
+            findEmptyCordinate("trap")
         }
 
         draw(context)
     }
 
-    function findEmptyCordinate(){
+    function findEmptyCordinate(selection){
         let randomX
         let randomY
 
@@ -322,7 +340,10 @@ const Canvas = props => {
                 return
             }
         }
-        rewardPos.current = { x: randomX, y: randomY }
+        if(selection === "reward")
+            rewardPos.current = { x: randomX, y: randomY }
+        else if(selection === "trap")
+            trapPos.current = { x: randomX, y: randomY }
     }
 
     function collisionCheck(){
