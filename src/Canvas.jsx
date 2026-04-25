@@ -15,6 +15,9 @@ const Canvas = props => {
 
     let context = useRef(null)
 
+    const isPaused = useRef(false)
+    const intervalRef = useRef(null)
+
     useEffect(() => {
         const base = import.meta.env.BASE_URL;
 
@@ -27,12 +30,26 @@ const Canvas = props => {
         const canvas = ref.current
         context = canvas.getContext("2d")
         drawGrid()
+        findEmptyCordinate()
 
-        const gameInterval = setInterval(() => {
+        intervalRef.current = setInterval(() => {
             runGame()
-        }, 500);
-        return () => clearInterval(gameInterval)
+        }, 500)
+
+        return () => clearInterval(intervalRef.current)
     }, [])
+
+    function togglePause() {
+        if (isPaused.current) {
+            isPaused.current = false
+            intervalRef.current = setInterval(() => {
+                runGame()
+            }, 500)
+        } else {
+            isPaused.current = true
+            clearInterval(intervalRef.current)
+        }
+    }
 
     function drawGrid(){
         const cols = context.canvas.width / TILE
@@ -196,16 +213,21 @@ const Canvas = props => {
         />
         </div>
         <div className="controller">
-            <div className="dpad">
-                <button className="empty" aria-hidden="true" />
-                <button onClick={() => keyPad("W")}>⇑</button>
-                <button className="empty" aria-hidden="true" />
-                <button onClick={() => keyPad("D")}>⇐</button>
-                <button className="empty" aria-hidden="true" />
-                <button onClick={() => keyPad("A")}>⇒</button>
-                <button className="empty" aria-hidden="true" />
-                <button onClick={() => keyPad("S")}>⇓</button>
-                <button className="empty" aria-hidden="true" />
+            <div className="controller-inner">
+                <div className="dpad">
+                    <button className="empty" aria-hidden="true" />
+                    <button onClick={() => keyPad("W")}>⇑</button>
+                    <button className="empty" aria-hidden="true" />
+                    <button onClick={() => keyPad("D")}>⇐</button>
+                    <button className="empty" aria-hidden="true" />
+                    <button onClick={() => keyPad("A")}>⇒</button>
+                    <button className="empty" aria-hidden="true" />
+                    <button onClick={() => keyPad("S")}>⇓</button>
+                    <button className="empty" aria-hidden="true" />
+                </div>
+                <button className="pause-btn" onClick={togglePause}>
+                    ⏸
+                </button>
             </div>
         </div>
     </>
