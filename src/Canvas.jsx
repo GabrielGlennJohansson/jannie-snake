@@ -17,10 +17,10 @@ const Canvas = props => {
 
     useEffect(() => {
         baseImg.current = new Image()
-        baseImg.current.src = '../img/jannie2.png'
+        baseImg.current.src = 'public/img/jannie2.png'
 
         baseRewardImg.current = new Image()
-        baseRewardImg.current.src = '../img/powder.png'
+        baseRewardImg.current.src = 'public/img/powder.png'
 
         const canvas = ref.current
         context = canvas.getContext("2d")
