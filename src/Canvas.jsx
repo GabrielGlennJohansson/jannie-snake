@@ -124,16 +124,17 @@ const Canvas = props => {
     }
 
     const setKey = (event) => {
-        if (event.code === "KeyW"){
+        console.log(event.code)
+        if (event.code === "KeyW" || event.code === "ArrowUp"){
             direction.current = {right: false, left: false, up: true, down: false}
         }
-        else if (event.code === "KeyS"){
+        else if (event.code === "KeyS" || event.code === "ArrowDown"){
             direction.current = {right: false, left: false, up: false, down: true}
         }
-        else if (event.code === "KeyA"){
+        else if (event.code === "KeyA" || event.code === "ArrowLeft"){
             direction.current = {right: false, left: true, up: false, down: false}
         }
-        else if (event.code === "KeyD"){
+        else if (event.code === "KeyD" || event.code === "ArrowRight"){
             direction.current = {right: true, left: false, up: false, down: false}
         }
     }
