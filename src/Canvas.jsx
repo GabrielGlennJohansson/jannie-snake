@@ -16,11 +16,13 @@ const Canvas = props => {
     let context = useRef(null)
 
     useEffect(() => {
+        const base = import.meta.env.BASE_URL;
+
         baseImg.current = new Image()
-        baseImg.current.src = 'public/img/jannie2.png'
+        baseImg.current.src = `${base}img/jannie2.png`;
 
         baseRewardImg.current = new Image()
-        baseRewardImg.current.src = 'public/img/powder.png'
+        baseRewardImg.current.src = `${base}img/powder.png`;
 
         const canvas = ref.current
         context = canvas.getContext("2d")
