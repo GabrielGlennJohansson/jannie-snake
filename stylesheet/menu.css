@@ -1,9 +1,3 @@
-.menu {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-}
 
 .menu img {
     width: 100%;
@@ -13,15 +7,23 @@
     display: block;
 }
 
+.menu img {
+    width: 100%;
+    height: 22vh;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    border-bottom: 3px solid #222;
+}
+
 .menu ul {
     width: 100%;
     display: flex;
     justify-content: space-evenly;
-    background-color: #FFDA76;
-    border-top: 2px solid #000;
-    border-bottom: 2px solid #000;
-    padding: 0.3rem 0;
-    flex-shrink: 0;
+    background: #FFDA76;
+    border-bottom: 3px solid #222;
+    padding: 0.35rem 0;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 
 .menu ul li {
