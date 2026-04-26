@@ -3,9 +3,7 @@ import { use, useEffect, useRef } from 'react'
 const TILE = 100
 
 // Lägg till att bakgrundljudet blir lite snabbare varje gånga man äter reward
-// lägg till att ormen rör sig lite snabbare varje gång man äter en reward
 // lägg till hicgscore och koppla till api
-// se till att kaffe och matcha aldrig blir på samma ruta
 
 const Canvas = props => {
     const ref = useRef()
@@ -15,6 +13,7 @@ const Canvas = props => {
     const rewardPos = useRef({ x: 0, y: 0 })
     const trapPos = useRef({ x: 0, y: 0 })
     const direction = useRef({right: true, left: false, up: false, down: false})
+    const speed = useRef(500)
 
     const baseImg = useRef(null)
     const baseRewardImg = useRef(null)
@@ -77,7 +76,7 @@ const Canvas = props => {
             isPaused.current = false
             intervalRef.current = setInterval(() => {
                 runGame()
-            }, 500)
+            }, speed.current)
         } else {
             isPaused.current = true
             clearInterval(intervalRef.current)
@@ -103,6 +102,8 @@ const Canvas = props => {
     }
 
     function gameOver() {
+        speed.current = 500
+
         bgMusic.current.pause()
         gameOverMusic.current.play()
         clearInterval(intervalRef.current)
@@ -285,7 +286,7 @@ const Canvas = props => {
 
         intervalRef.current = setInterval(() => {
             runGame()
-        }, 500)
+        }, speed.current)
 
         return () => clearInterval(intervalRef.current)
     }
@@ -311,6 +312,12 @@ const Canvas = props => {
             sizeCount.current++
             rewardMusic.current.play()
             findEmptyCordinate("reward")
+
+            speed.current = Math.max((50, speed.current - 10))
+            clearInterval(intervalRef.current)
+            intervalRef.current = setInterval(() => {
+                runGame()
+            }, speed.current)
         }
 
         if (pos.current.x === trapPos.current.x && pos.current.y === trapPos.current.y) {
