@@ -2,6 +2,11 @@ import { use, useEffect, useRef } from 'react'
 
 const TILE = 100
 
+// Lägg till att bakgrundljudet blir lite snabbare varje gånga man äter reward
+// lägg till att ormen rör sig lite snabbare varje gång man äter en reward
+// lägg till hicgscore och koppla till api
+// se till att kaffe och matcha aldrig blir på samma ruta
+
 const Canvas = props => {
     const ref = useRef()
     const pos = useRef({ x: 0, y: 0 })
@@ -339,6 +344,11 @@ const Canvas = props => {
                 console.log("You won")
                 return
             }
+
+            if(randomX == rewardPos.current.x && randomY == rewardPos.current.y)
+                freeSpaceFound = false
+            else if(randomX == trapPos.current.x && randomY == trapPos.current.y)
+                freeSpaceFound = false
         }
         if(selection === "reward")
             rewardPos.current = { x: randomX, y: randomY }
@@ -385,7 +395,7 @@ const Canvas = props => {
                     Start
                 </button>
                 <button className="pause-btn" onClick={togglePause}>
-                    ⏸
+                    Pause
                 </button>
             </div>
         </div>

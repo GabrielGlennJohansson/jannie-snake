@@ -58,14 +58,7 @@ button:active {
     gap: 1rem;
 }
 
-.pause-btn {
-    width: min(52px, 13vw);
-    height: min(52px, 13vw);
-    font-size: 1.5rem;
-    align-self: center;
-}
-
-.start-btn {
+.start-btn, .pause-btn {
     width: min(104px, 13vw);
     height: min(52px, 13vw);
     font-size: 1rem;
