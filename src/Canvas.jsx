@@ -26,6 +26,8 @@ const Canvas = props => {
     const rewardMusic = useRef(null)
     const trapMusic = useRef(null)
 
+    const audioSpeedMulti = useRef(1)
+
     let context = useRef(null)
 
     const isPaused = useRef(false)
@@ -292,6 +294,8 @@ const Canvas = props => {
     }
 
     function runGame() {
+        bgMusic.current.playbackRate = audioSpeedMulti.current
+
         if (direction.current.up) pos.current.y -= TILE
         else if (direction.current.down) pos.current.y += TILE
         else if (direction.current.left) pos.current.x -= TILE
@@ -312,6 +316,9 @@ const Canvas = props => {
             sizeCount.current++
             rewardMusic.current.play()
             findEmptyCordinate("reward")
+
+            audioSpeedMulti.current += 0.02
+            console.log(audioSpeedMulti.current)
 
             speed.current = Math.max((50, speed.current - 10))
             clearInterval(intervalRef.current)
