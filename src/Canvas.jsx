@@ -2,7 +2,6 @@ import { use, useEffect, useRef } from 'react'
 
 const TILE = 100
 
-// Lägg till att bakgrundljudet blir lite snabbare varje gånga man äter reward
 // lägg till hicgscore och koppla till api
 
 const Canvas = props => {
@@ -105,6 +104,7 @@ const Canvas = props => {
 
     function gameOver() {
         speed.current = 500
+        audioSpeedMulti.current = 1
 
         bgMusic.current.pause()
         gameOverMusic.current.play()
