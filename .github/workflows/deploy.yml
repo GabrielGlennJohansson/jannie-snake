@@ -5,6 +5,7 @@ on:
     branches: [main]
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -31,6 +32,23 @@ jobs:
         with:
           path: './dist'
           name: github-pages-${{ github.run_attempt }}
+
+      - name: Wait for Pages artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_NAME: github-pages-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          for attempt in {1..15}; do
+            artifact_names="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" --jq '.artifacts[] | select(.expired == false) | .name')"
+            if printf '%s\n' "$artifact_names" | grep -Fxq "$ARTIFACT_NAME"; then
+              echo "Artifact $ARTIFACT_NAME is available."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Timed out waiting for artifact $ARTIFACT_NAME to become visible." >&2
+          exit 1
 
       - id: deployment
         uses: actions/deploy-pages@v4
