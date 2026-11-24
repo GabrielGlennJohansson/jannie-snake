@@ -1,68 +1,116 @@
 .controller {
-    background-color: #FF8C9E;
-    flex-shrink: 0;
-    padding: 0.5rem 0 0.75rem;
+    min-height: 154px;
+    display: grid;
+    place-items: center;
+    padding: 12px 18px 16px;
+    background: #211d3e;
+    border-top: 1px solid rgba(255,255,255,.09);
+}
+
+.controller-inner {
+    width: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: space-evenly;
+    gap: clamp(18px, 7vw, 44px);
 }
 
 .dpad {
+    width: 132px;
+    height: 132px;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    gap: 6px;
-    width: min(160px, 40vw);
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(3, 44px);
+    gap: 0;
 }
 
-.dpad button {
-    height: min(52px, 13vw);
-    font-size: clamp(1rem, 4vw, 1.5rem);
-    aspect-ratio: 1 / 1;
+.dpad button,
+.game-actions button {
+    border: 0;
+    color: #fff;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 80ms ease, filter 80ms ease;
+}
+
+.dpad button:not(.empty) {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    background: #4a456d;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        0 5px 0 #15132d,
+        0 8px 12px rgba(7,6,26,.28);
+    font-size: 1.35rem;
+    font-weight: 900;
+}
+
+.dpad button:active,
+.game-actions button:active {
+    transform: translateY(4px);
+    filter: brightness(.92);
 }
 
 .dpad .empty {
     visibility: hidden;
-    pointer-events: none;
 }
 
-button {
-    background: #FF4E88;
-    border: 2px solid #c8305e;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    box-shadow:
-        0 6px 0 #a8204e,
-        0 8px 6px rgba(0,0,0,0.35);
-    position: relative;
-    top: 0;
-    transition: box-shadow 80ms ease, top 80ms ease;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-}
-
-button:active {
-    top: 5px;
-    box-shadow:
-        0 1px 0 #a8204e,
-        0 2px 3px rgba(0,0,0,0.25);
-}
-
-.controller-inner {
+.game-actions {
     display: flex;
-    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.game-actions button {
+    width: 78px;
+    height: 78px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-family: "Luckiest Guy", sans-serif;
+    box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.22),
+        0 8px 0 #7f304f,
+        0 14px 22px rgba(7,6,26,.38);
+}
+
+.start-btn {
+    background: #ff708f;
+    border: 5px solid #ff9ab0 !important;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+}
+
+.pause-btn {
+    width: 58px !important;
+    height: 58px !important;
+    display: flex !important;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 1px;
+    background: #5bd0b1;
+    border: 4px solid #98ead5 !important;
+    box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.24),
+        0 7px 0 #287d70,
+        0 12px 18px rgba(7,6,26,.32) !important;
+    color: #1d4d48 !important;
+    font-size: 1.05rem;
+    line-height: 1;
 }
 
-.start-btn, .pause-btn {
-    width: min(104px, 13vw);
-    height: min(52px, 13vw);
-    font-size: 1rem;
-    align-self: center;
+.pause-btn small {
+    font-family: "Montserrat", sans-serif;
+    font-size: .48rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
 }
 
 

@@ -1,11 +1,18 @@
 function Menu() {
   return (
-    <div className="menu">
-      <img src={`${import.meta.env.BASE_URL}img/banner.png`} alt="Banner" />
-      <ul>
-        <li><a href="#">Highscore</a></li>
-      </ul>
-    </div>
+    <header className="menu">
+      <div className="brand-mark">
+        <img src={`${import.meta.env.BASE_URL}img/logo.png`} alt="" />
+      </div>
+      <div className="menu-title">
+        <span>JANNIE</span>
+        <strong>SNAKE</strong>
+      </div>
+      <a className="highscore-link" href="#highscore" aria-label="View highscore">
+        <span className="trophy" aria-hidden="true">◆</span>
+        <span>Best</span>
+      </a>
+    </header>
   )
 }
 

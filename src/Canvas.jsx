@@ -1,4 +1,4 @@
-import { use, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 const TILE = 100
 
@@ -253,10 +253,10 @@ const Canvas = props => {
             direction.current = {right: false, left: false, up: false, down: true}
         }
         else if (key === "D"){
-            direction.current = {right: false, left: true, up: false, down: false}
+            direction.current = {right: true, left: false, up: false, down: false}
         }
         else if (key === "A"){
-            direction.current = {right: true, left: false, up: false, down: false}
+            direction.current = {right: false, left: true, up: false, down: false}
         }
     }
 
@@ -320,7 +320,7 @@ const Canvas = props => {
             audioSpeedMulti.current += 0.02
             console.log(audioSpeedMulti.current)
 
-            speed.current = Math.max((50, speed.current - 10))
+            speed.current = Math.max(50, speed.current - 10)
             clearInterval(intervalRef.current)
             intervalRef.current = setInterval(() => {
                 runGame()
@@ -382,35 +382,41 @@ const Canvas = props => {
     return (
     <>
         <div className="map-wrapper">
-        <canvas
-            onKeyDown={setKey}
-            className='map'
-            tabIndex={0}
-            ref={ref}
-            width="1000"
-            height="1000"
-            {...props}
-        />
+            <div className="game-frame">
+                <canvas
+                    onKeyDown={setKey}
+                    className='map'
+                    tabIndex={0}
+                    ref={ref}
+                    width="1000"
+                    height="1000"
+                    aria-label="Jannie Snake game board"
+                    {...props}
+                />
+            </div>
         </div>
         <div className="controller">
             <div className="controller-inner">
                 <div className="dpad">
                     <button className="empty" aria-hidden="true" />
-                    <button onClick={() => keyPad("W")}>⇑</button>
+                    <button onClick={() => keyPad("W")} aria-label="Move up">↑</button>
                     <button className="empty" aria-hidden="true" />
-                    <button onClick={() => keyPad("D")}>⇐</button>
+                    <button onClick={() => keyPad("A")} aria-label="Move left">←</button>
                     <button className="empty" aria-hidden="true" />
-                    <button onClick={() => keyPad("A")}>⇒</button>
+                    <button onClick={() => keyPad("D")} aria-label="Move right">→</button>
                     <button className="empty" aria-hidden="true" />
-                    <button onClick={() => keyPad("S")}>⇓</button>
+                    <button onClick={() => keyPad("S")} aria-label="Move down">↓</button>
                     <button className="empty" aria-hidden="true" />
                 </div>
-                <button className="start-btn" onClick={startGame}>
-                    Start
-                </button>
-                <button className="pause-btn" onClick={togglePause}>
-                    Pause
-                </button>
+                <div className="game-actions">
+                    <button className="start-btn" onClick={startGame} aria-label="Start game">
+                        <span>Play</span>
+                    </button>
+                    <button className="pause-btn" onClick={togglePause} aria-label="Pause game">
+                        <span aria-hidden="true">Ⅱ</span>
+                        <small>Pause</small>
+                    </button>
+                </div>
             </div>
         </div>
     </>
