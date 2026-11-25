@@ -1,6 +1,19 @@
 import { useEffect, useRef } from 'react'
 
 const TILE = 100
+const interpolateWrapped = (from, to, progress, dimension) => {
+    let delta = to - from
+    if (delta > dimension / 2) delta -= dimension
+    else if (delta < -dimension / 2) delta += dimension
+    return from + delta * progress
+}
+
+const getWrappedOffsets = (min, max, dimension, margin) => {
+    const offsets = [0]
+    if (min - margin < 0) offsets.push(dimension)
+    if (max + margin > dimension) offsets.push(-dimension)
+    return offsets
+}
 
 // lägg till hicgscore och koppla till api
 
@@ -31,11 +44,14 @@ const Canvas = props => {
 
     const isPaused = useRef(false)
     const intervalRef = useRef(null)
+    const animationFrameRef = useRef(null)
+    const lastMoveAt = useRef(null)
+    const frameTime = useRef(null)
 
     useEffect(() => {
         const base = import.meta.env.BASE_URL;
 
-        bgMusic.current = new Audio(`${import.meta.env.BASE_URL}sound/theme.mp3`)
+        bgMusic.current = new Audio(`${import.meta.env.BASE_URL}sound/Jannie.wav`)
         bgMusic.current.loop = true
         bgMusic.current.volume = 0.2
 
@@ -69,18 +85,47 @@ const Canvas = props => {
         logoImg.current.onload = () => {
             drawWelcomeScreen()
         }
+
+        return () => {
+            clearInterval(intervalRef.current)
+            cancelAnimationFrame(animationFrameRef.current)
+        }
     }, [])
+
+    function stopAnimation() {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+    }
+
+    function animate(timestamp) {
+        if (isPaused.current || !intervalRef.current) return
+
+        frameTime.current = timestamp
+        if (lastMoveAt.current === null) lastMoveAt.current = timestamp
+        const progress = Math.min((timestamp - lastMoveAt.current) / speed.current, 1)
+        draw(context, progress)
+        animationFrameRef.current = requestAnimationFrame(animate)
+    }
+
+    function startAnimation() {
+        if (animationFrameRef.current === null) {
+            animationFrameRef.current = requestAnimationFrame(animate)
+        }
+    }
 
     function togglePause() {
         if (isPaused.current) {
             bgMusic.current.play()
             isPaused.current = false
+            lastMoveAt.current = null
             intervalRef.current = setInterval(() => {
                 runGame()
             }, speed.current)
+            startAnimation()
         } else {
             isPaused.current = true
             clearInterval(intervalRef.current)
+            stopAnimation()
             bgMusic.current.pause()
         }
     }
@@ -110,6 +155,7 @@ const Canvas = props => {
         gameOverMusic.current.play()
         clearInterval(intervalRef.current)
         intervalRef.current = null
+        stopAnimation()
 
         let step = 0
         const totalSteps = sizeCount.current
@@ -166,7 +212,7 @@ const Canvas = props => {
             )
             context.fill()
 
-            if (i + 1 < history.current.length) {
+            if (i < sizeCount.current && i + 1 < history.current.length) {
                 const dx = Math.abs(history.current[i].x - history.current[i + 1].x)
                 const dy = Math.abs(history.current[i].y - history.current[i + 1].y)
 
@@ -203,44 +249,90 @@ const Canvas = props => {
         }
     }
 
-    const draw = (context) => {
+    const draw = (context, progress = 1) => {
         context.clearRect(0, 0, context.canvas.width, context.canvas.height)
 
         drawGrid()
 
+        const segments = []
         for (let i = 1; i <= sizeCount.current && i < history.current.length; i++) {
-            const t = i / sizeCount.current
+            const previousSegment = history.current[i + 1] || history.current[i]
+            segments.push({
+                x: interpolateWrapped(previousSegment.x, history.current[i].x, progress, context.canvas.width),
+                y: interpolateWrapped(previousSegment.y, history.current[i].y, progress, context.canvas.height),
+                index: i,
+            })
+        }
 
-            const r = 255
-            const g = Math.floor(20 + 180 * t)
-            const b = Math.floor(150 + 105 * t)
-
-            context.fillStyle = `rgb(${r}, ${g}, ${b})`
-            context.beginPath()
-            context.arc(
-                history.current[i].x + TILE / 2,
-                history.current[i].y + TILE / 2,
-                TILE / 2,
-                0,
-                Math.PI * 2
-            )
-            context.fill()
-
-            if (i + 1 < history.current.length) {
-                const dx = Math.abs(history.current[i].x - history.current[i + 1].x)
-                const dy = Math.abs(history.current[i].y - history.current[i + 1].y)
-
-                if (dx <= TILE && dy <= TILE) {
-                    const midX = (history.current[i].x + history.current[i + 1].x) / 2
-                    const midY = (history.current[i].y + history.current[i + 1].y) / 2
-
-                    context.fillStyle = `rgb(${r}, ${g}, ${b})`
-                    context.fillRect(midX, midY, TILE, TILE)
+        for (const segment of segments) {
+            const t = segment.index / sizeCount.current
+            context.fillStyle = `rgb(255, ${Math.floor(20 + 180 * t)}, ${Math.floor(150 + 105 * t)})`
+            const centerX = segment.x + TILE / 2
+            const centerY = segment.y + TILE / 2
+            const xOffsets = getWrappedOffsets(centerX, centerX, context.canvas.width, TILE / 2)
+            const yOffsets = getWrappedOffsets(centerY, centerY, context.canvas.height, TILE / 2)
+            for (const offsetX of xOffsets) {
+                for (const offsetY of yOffsets) {
+                    context.beginPath()
+                    context.arc(centerX + offsetX, centerY + offsetY, TILE / 2, 0, Math.PI * 2)
+                    context.fill()
                 }
             }
         }
 
-        context.drawImage(baseImg.current, pos.current.x - 50, pos.current.y - 50, TILE * 2, TILE * 2)
+        for (let i = 0; i < segments.length - 1; i++) {
+            const segment = segments[i]
+            const nextSegment = segments[i + 1]
+            const startX = segment.x + TILE / 2
+            const startY = segment.y + TILE / 2
+            const endX = interpolateWrapped(segment.x, nextSegment.x, 1, context.canvas.width) + TILE / 2
+            const endY = interpolateWrapped(segment.y, nextSegment.y, 1, context.canvas.height) + TILE / 2
+            const dx = Math.abs(startX - endX)
+            const dy = Math.abs(startY - endY)
+
+            if (dx <= TILE + 1 && dy <= TILE + 1) {
+                const t = segment.index / sizeCount.current
+                const nextT = nextSegment.index / sizeCount.current
+                const xOffsets = getWrappedOffsets(Math.min(startX, endX), Math.max(startX, endX), context.canvas.width, TILE / 2)
+                const yOffsets = getWrappedOffsets(Math.min(startY, endY), Math.max(startY, endY), context.canvas.height, TILE / 2)
+                for (const offsetX of xOffsets) {
+                    for (const offsetY of yOffsets) {
+                        const gradient = context.createLinearGradient(
+                            startX + offsetX,
+                            startY + offsetY,
+                            endX + offsetX,
+                            endY + offsetY
+                        )
+                        gradient.addColorStop(0, `rgb(255, ${Math.floor(20 + 180 * t)}, ${Math.floor(150 + 105 * t)})`)
+                        gradient.addColorStop(1, `rgb(255, ${Math.floor(20 + 180 * nextT)}, ${Math.floor(150 + 105 * nextT)})`)
+
+                        context.strokeStyle = gradient
+                        context.lineWidth = TILE
+                        context.lineCap = 'round'
+                        context.beginPath()
+                        context.moveTo(startX + offsetX, startY + offsetY)
+                        context.lineTo(endX + offsetX, endY + offsetY)
+                        context.stroke()
+                    }
+                }
+            }
+        }
+
+        const head = history.current.length > 1
+            ? {
+                x: interpolateWrapped(history.current[1].x, history.current[0].x, progress, context.canvas.width),
+                y: interpolateWrapped(history.current[1].y, history.current[0].y, progress, context.canvas.height),
+            }
+            : pos.current
+        const headX = head.x - TILE / 2
+        const headY = head.y - TILE / 2
+        const headXOffsets = getWrappedOffsets(headX, headX + TILE * 2, context.canvas.width, 0)
+        const headYOffsets = getWrappedOffsets(headY, headY + TILE * 2, context.canvas.height, 0)
+        for (const offsetX of headXOffsets) {
+            for (const offsetY of headYOffsets) {
+                context.drawImage(baseImg.current, headX + offsetX, headY + offsetY, TILE * 2, TILE * 2)
+            }
+        }
         context.drawImage(baseRewardImg.current, rewardPos.current.x, rewardPos.current.y, TILE, TILE)
         context.drawImage(trapImg.current, trapPos.current.x, trapPos.current.y, TILE, TILE)
     }
@@ -286,9 +378,12 @@ const Canvas = props => {
         findEmptyCordinate("reward")
         findEmptyCordinate("trap")
 
+        isPaused.current = false
+        lastMoveAt.current = null
         intervalRef.current = setInterval(() => {
             runGame()
         }, speed.current)
+        startAnimation()
 
         return () => clearInterval(intervalRef.current)
     }
@@ -308,7 +403,7 @@ const Canvas = props => {
 
         history.current.unshift({ ...pos.current })
 
-        history.current = history.current.slice(0, sizeCount.current + 1)
+        history.current = history.current.slice(0, sizeCount.current + 2)
 
         collisionCheck()
 
@@ -333,7 +428,7 @@ const Canvas = props => {
             findEmptyCordinate("trap")
         }
 
-        draw(context)
+        lastMoveAt.current = frameTime.current
     }
 
     function findEmptyCordinate(selection){
