@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 const TILE = 100
+const HEAD_SIZE = TILE * 1.7
 const interpolateWrapped = (from, to, progress, dimension) => {
     let delta = to - from
     if (delta > dimension / 2) delta -= dimension
@@ -25,6 +26,7 @@ const Canvas = props => {
     const rewardPos = useRef({ x: 0, y: 0 })
     const trapPos = useRef({ x: 0, y: 0 })
     const direction = useRef({right: true, left: false, up: false, down: false})
+    const currentHeading = useRef("right")
     const speed = useRef(500)
 
     const baseImg = useRef(null)
@@ -264,22 +266,6 @@ const Canvas = props => {
             })
         }
 
-        for (const segment of segments) {
-            const t = segment.index / sizeCount.current
-            context.fillStyle = `rgb(255, ${Math.floor(20 + 180 * t)}, ${Math.floor(150 + 105 * t)})`
-            const centerX = segment.x + TILE / 2
-            const centerY = segment.y + TILE / 2
-            const xOffsets = getWrappedOffsets(centerX, centerX, context.canvas.width, TILE / 2)
-            const yOffsets = getWrappedOffsets(centerY, centerY, context.canvas.height, TILE / 2)
-            for (const offsetX of xOffsets) {
-                for (const offsetY of yOffsets) {
-                    context.beginPath()
-                    context.arc(centerX + offsetX, centerY + offsetY, TILE / 2, 0, Math.PI * 2)
-                    context.fill()
-                }
-            }
-        }
-
         for (let i = 0; i < segments.length - 1; i++) {
             const segment = segments[i]
             const nextSegment = segments[i + 1]
@@ -306,16 +292,29 @@ const Canvas = props => {
                         gradient.addColorStop(0, `rgb(255, ${Math.floor(20 + 180 * t)}, ${Math.floor(150 + 105 * t)})`)
                         gradient.addColorStop(1, `rgb(255, ${Math.floor(20 + 180 * nextT)}, ${Math.floor(150 + 105 * nextT)})`)
 
-                        context.strokeStyle = gradient
-                        context.lineWidth = TILE
                         context.lineCap = 'round'
-                        context.beginPath()
-                        context.moveTo(startX + offsetX, startY + offsetY)
-                        context.lineTo(endX + offsetX, endY + offsetY)
-                        context.stroke()
+                        const drawLink = (strokeStyle, lineWidth) => {
+                            context.strokeStyle = strokeStyle
+                            context.lineWidth = lineWidth
+                            context.beginPath()
+                            context.moveTo(startX + offsetX, startY + offsetY)
+                            context.lineTo(endX + offsetX, endY + offsetY)
+                            context.stroke()
+                        }
+                        drawLink('rgba(210, 20, 115, 0.35)', TILE * 0.96)
+                        drawLink(gradient, TILE * 0.86)
+                        drawLink('rgba(255, 255, 255, 0.2)', TILE * 0.12)
                     }
                 }
             }
+        }
+
+        if (segments.length === 1) {
+            const t = segments[0].index / sizeCount.current
+            context.fillStyle = `rgb(255, ${Math.floor(20 + 180 * t)}, ${Math.floor(150 + 105 * t)})`
+            context.beginPath()
+            context.arc(segments[0].x + TILE / 2, segments[0].y + TILE / 2, TILE * 0.43, 0, Math.PI * 2)
+            context.fill()
         }
 
         const head = history.current.length > 1
@@ -324,46 +323,68 @@ const Canvas = props => {
                 y: interpolateWrapped(history.current[1].y, history.current[0].y, progress, context.canvas.height),
             }
             : pos.current
-        const headX = head.x - TILE / 2
-        const headY = head.y - TILE / 2
-        const headXOffsets = getWrappedOffsets(headX, headX + TILE * 2, context.canvas.width, 0)
-        const headYOffsets = getWrappedOffsets(headY, headY + TILE * 2, context.canvas.height, 0)
+        const headX = head.x + (TILE - HEAD_SIZE) / 2
+        const headY = head.y + (TILE - HEAD_SIZE) / 2
+        const headXOffsets = getWrappedOffsets(headX, headX + HEAD_SIZE, context.canvas.width, 0)
+        const headYOffsets = getWrappedOffsets(headY, headY + HEAD_SIZE, context.canvas.height, 0)
         for (const offsetX of headXOffsets) {
             for (const offsetY of headYOffsets) {
-                context.drawImage(baseImg.current, headX + offsetX, headY + offsetY, TILE * 2, TILE * 2)
+                context.drawImage(baseImg.current, headX + offsetX, headY + offsetY, HEAD_SIZE, HEAD_SIZE)
             }
         }
         context.drawImage(baseRewardImg.current, rewardPos.current.x, rewardPos.current.y, TILE, TILE)
         context.drawImage(trapImg.current, trapPos.current.x, trapPos.current.y, TILE, TILE)
     }
 
-    function keyPad(key){
-        if (key === "W"){
-            direction.current = {right: false, left: false, up: true, down: false}
+    function changeDirection(nextDirection) {
+        const oppositeDirection = {
+            right: "left",
+            left: "right",
+            up: "down",
+            down: "up",
         }
-        else if (key === "S"){
-            direction.current = {right: false, left: false, up: false, down: true}
+        if (intervalRef.current && oppositeDirection[currentHeading.current] === nextDirection) return
+
+        const next = {
+            right: nextDirection === "right",
+            left: nextDirection === "left",
+            up: nextDirection === "up",
+            down: nextDirection === "down",
         }
-        else if (key === "D"){
-            direction.current = {right: true, left: false, up: false, down: false}
+        const changed = Object.keys(next).some(key => next[key] !== direction.current[key])
+        if (!changed) return
+        direction.current = next
+
+        if (!intervalRef.current || isPaused.current) return
+
+        clearInterval(intervalRef.current)
+        runGame()
+
+        if (intervalRef.current !== null) {
+            clearInterval(intervalRef.current)
+            intervalRef.current = setInterval(() => {
+                runGame()
+            }, speed.current)
         }
-        else if (key === "A"){
-            direction.current = {right: false, left: true, up: false, down: false}
-        }
+    }
+
+    function keyPad(key) {
+        const directionByKey = { W: "up", S: "down", D: "right", A: "left" }
+        if (directionByKey[key]) changeDirection(directionByKey[key])
     }
 
     const setKey = (event) => {
         if (event.code === "KeyW" || event.code === "ArrowUp"){
-            direction.current = {right: false, left: false, up: true, down: false}
+            changeDirection("up")
         }
         else if (event.code === "KeyS" || event.code === "ArrowDown"){
-            direction.current = {right: false, left: false, up: false, down: true}
+            changeDirection("down")
         }
         else if (event.code === "KeyA" || event.code === "ArrowLeft"){
-            direction.current = {right: false, left: true, up: false, down: false}
+            changeDirection("left")
         }
         else if (event.code === "KeyD" || event.code === "ArrowRight"){
-            direction.current = {right: true, left: false, up: false, down: false}
+            changeDirection("right")
         }
     }
 
@@ -391,10 +412,19 @@ const Canvas = props => {
     function runGame() {
         bgMusic.current.playbackRate = audioSpeedMulti.current
 
-        if (direction.current.up) pos.current.y -= TILE
-        else if (direction.current.down) pos.current.y += TILE
-        else if (direction.current.left) pos.current.x -= TILE
-        else if (direction.current.right) pos.current.x += TILE
+        if (direction.current.up) {
+            currentHeading.current = "up"
+            pos.current.y -= TILE
+        } else if (direction.current.down) {
+            currentHeading.current = "down"
+            pos.current.y += TILE
+        } else if (direction.current.left) {
+            currentHeading.current = "left"
+            pos.current.x -= TILE
+        } else if (direction.current.right) {
+            currentHeading.current = "right"
+            pos.current.x += TILE
+        }
 
         if (pos.current.y < 0) pos.current.y = context.canvas.height - TILE
         else if (pos.current.y >= context.canvas.height) pos.current.y = 0
